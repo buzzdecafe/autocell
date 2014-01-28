@@ -36,7 +36,7 @@
       function applyRule(rule, state) {
         return state.map(function(cell, idx, arr) {
           var west = idx > 0 ? arr[idx - 1] : 0;
-          var east = idx < state.length ? arr[idx + 1] : 0;
+          var east = idx < state.length - 1 ? arr[idx + 1] : 0;
           return rule(west, cell, east);
         });
       }
