@@ -47,7 +47,7 @@
       function autocell(rule, state, steps) {
         var ac = function(r, s, t) {
           display(s);
-          return (t <= 0) ? s : function() { setTimeout(function () { ac(r, applyRule(r, s), t - 1); }, 500); };
+          return (t <= 0) ? s : function() { return ac(r, applyRule(r, s), t - 1); };
         };
         return trampoline(ac, rule, state, steps);
       }
