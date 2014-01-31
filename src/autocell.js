@@ -18,41 +18,62 @@
 
     return  (function() {
      
-      function trampoline(fn) {
-        var result = fn.apply(this, [].slice.call(arguments, 1));
-        while (typeof result === 'function') {
-          result = result();
-        }
-        return result;
-      }
+      var delay = 500;
+      var steps = 5;
 
       // draw the state to the screen
-      function display(state) {
+      var display = function(state) {
         // override me
         console.log(state); 
-      }
+      };
 
-      // simple 1D grid
-      function applyRule(rule, state) {
-        return state.map(function(cell, idx, arr) {
+      var rule = function(w, c, e) {
+        return (w + c + e) % 2;
+      };
+
+      var mapping = function(cell, idx, arr) {
           var west = idx > 0 ? arr[idx - 1] : 0;
           var east = idx < state.length - 1 ? arr[idx + 1] : 0;
           return rule(west, cell, east);
-        });
+      };
+
+      // simple 1D grid
+      function applyRule(state) {
+        return state.map(mapping);
       }
 
       // `rule` is a map from state to state
       // `state` is the current state of the automaton
       // `steps` is the number of iterations to run
-      function autocell(rule, state, steps) {
-        var ac = function(r, s, t) {
-          display(s);
-          return (t <= 0) ? s : function() { return ac(r, applyRule(r, s), t - 1); };
-        };
-        return trampoline(ac, rule, state, steps);
+      function run(rule, state, steps) {
+        display(state);
+        if (steps > 0) {
+          setTimeout(function() {
+            run(rule, applyRule(state), steps - 1);
+          }, delay);
+        } else {
+          console.log('done');
+        }
       }
 
-      return autocell;
+      return {
+        run: run,
+        setDelay: function(n) {
+          delay = n;
+        },
+        setDisplay: function(fn) {
+          display = fn;
+        },
+        setMapping: function(fn) {
+          mapping = fn;
+        },
+        setRule: function(fn) {
+          rule = fn;
+        },
+        setSteps: function(n) {
+          steps = n;
+        }
+      };
 
     }());
 }));

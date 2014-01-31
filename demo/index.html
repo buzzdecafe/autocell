@@ -1,0 +1,145 @@
+<!doctype html>
+<html>
+  <head>
+    <title>AutoCell demo</title>
+    <style>
+      .ac-wrap {
+        position: relative;
+        width: 400px;
+        margin: auto;
+      }
+      .ac-wrap canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+      #ac_0 {
+        border: 1px solid #def; 
+      }
+      #ac_1 {
+        border: 1px solid #cba; 
+      }
+      .inactive {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="ac-wrap">
+      <canvas id="ac_0" height="400" width="400"></canvas>
+      <canvas id="ac_1" class="inactive" height="400" width="400"></canvas>
+    </div>
+
+    <script src="../src/autocell.js"></script>
+    <script>
+      (function() {
+        var buffers = {
+          current: document.getElementById('ac_0'), 
+          next: document.getElementById('ac_1')
+        };
+
+        function getNeighbors(state, x, y) {
+          var cell = state[y][x];
+          var neighbors = [];
+          var above = state[y-1];
+          var mid = state[y];
+          var below = state[y+1];
+          
+          if (above) {
+            // the row above 
+            if (above[x-1]) {
+              neighbors.push(above[x-1]);
+            }
+            neighbors.push(above[x]);
+            if (above[x+1]) {
+              neighbors.push(above[x+1]);
+            }
+          }
+
+          if (mid[x-1]) {
+            neighbors.push(mid[x-1]);
+          }
+          if (mid[x+1]) {
+            neighbors.push(mid[x-1]);
+          }
+
+          if (below) {
+            // the row below 
+            if (below[x-1]) {
+              neighbors.push(below[x-1]);
+            }
+            neighbors.push(below[x]);
+            if (below[x+1]) {
+              neighbors.push(below[x+1]);
+            }
+          }
+          return neighbors;
+        }
+
+        var rule = function(cell, neighbors) {
+          var count = neighbors.reduce(function(sum, num) { return sum + num; }, 0);
+          if (cell) {
+            return (count === 2 || count == 3) ? 1 : 0; 
+          } else {
+            return (count === 3) ? 1 : 0;
+          }
+        };
+
+        // 2D mapping function
+        var mapping = function(row, y, state) {
+          return row.map(function(cell, x) {
+            return rule(cell, getNeighbors(state, x, y));
+          });
+          
+        };
+
+        var display = function(state) {
+          var canvas = buffers.next;
+          var tmp;
+          var ctx = canvas.getContext('2d');
+          var cellWidth = canvas.width/state[0].length;
+          var cellHeight = canvas.height/state.length;
+
+          state.forEach(function(row, y) {
+            row.forEach(function(cell, x) {
+              if (cell) {
+                ctx.fillRect(x * cellWidth, y * cellHeight, cellWidth, cellHeight); 
+              }
+            });
+          });
+
+          tmp = buffers.current;
+          buffers.current = buffers.next;
+          buffers.next = tmp;
+
+          buffers.current.className = '';
+          buffers.next.className = 'inactive';
+          buffers.next.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+        };
+
+
+        var initState = (function() {
+          var i = 20, rows = [];
+          while(i--) {
+            rows.push((function() {
+              var j = 20, row = [];
+              while(j--) {
+                row.push((Math.random() >= 0.2) ? 0 : 1);
+              }
+              return row;
+            }()));
+          }
+          return rows;
+        }());
+
+        autocell.setRule(rule);
+        autocell.setMapping(mapping);
+        autocell.setDisplay(display);
+
+        autocell.run(rule, initState, 20);  
+      }());
+    </script>
+  </body>
+</html>
+
+
