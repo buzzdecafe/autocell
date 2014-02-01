@@ -28,6 +28,7 @@
     </div>
 
     <button id="ctrl">Run</button>
+    <button id="reset">Reset</button>
 
     <script src="../src/autocell.js"></script>
     <script>
@@ -140,15 +141,28 @@
 
 
         var ctrl = document.getElementById('ctrl');
+        var resetBtn = document.getElementById('reset');
+        
         ctrl.addEventListener('click', function(e) {
           if (this.textContent === 'Run') {
             autocell.setSteps(Infinity);  
             autocell.run(rule, golState || generate(160, 80));  
             this.textContent = 'Stop';
+            resetBtn.setAttribute('disabled', true);
           } else {
             autocell.setSteps(0);  
             this.textContent = 'Run';
+            resetBtn.removeAttribute('disabled');
           }
+        });
+
+        resetBtn.addEventListener('click', function(e) {
+          autocell.setSteps(0);
+          golState = undefined;
+          buffers.next.getContext('2d').clearRect(0, 0, buffers.next.width, buffers.next.height);
+          buffers.current.getContext('2d').clearRect(0, 0, buffers.current.width, buffers.current.height);
+          buffers.next.className = 'inactive';
+          buffers.current.className = '';
         });
 
       }());
