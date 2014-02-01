@@ -3,21 +3,18 @@
   <head>
     <title>AutoCell demo</title>
     <style>
+      html {
+        background-color: #000;
+      }
       .ac-wrap {
         position: relative;
-        width: 400px;
+        width: 800px;
         margin: auto;
       }
       .ac-wrap canvas {
         position: absolute;
         top: 0;
         left: 0;
-      }
-      #ac_0 {
-        border: 1px solid #def; 
-      }
-      #ac_1 {
-        border: 1px solid #cba; 
       }
       .inactive {
         display: none;
@@ -26,13 +23,16 @@
   </head>
   <body>
     <div class="ac-wrap">
-      <canvas id="ac_0" height="400" width="400"></canvas>
-      <canvas id="ac_1" class="inactive" height="400" width="400"></canvas>
+      <canvas id="ac_0" height="400" width="800"></canvas>
+      <canvas id="ac_1" class="inactive" height="400" width="800"></canvas>
     </div>
+
+    <button id="ctrl">Run</button>
 
     <script src="../src/autocell.js"></script>
     <script>
       (function() {
+        var golState;
         var buffers = {
           current: document.getElementById('ac_0'), 
           next: document.getElementById('ac_1')
@@ -87,6 +87,7 @@
 
         // 2D mapping function
         var mapping = function(row, y, state) {
+          golState = state;
           return row.map(function(cell, x) {
             return rule(cell, getNeighbors(state, x, y));
           });
@@ -100,6 +101,7 @@
           var cellWidth = canvas.width/state[0].length;
           var cellHeight = canvas.height/state.length;
 
+          ctx.fillStyle = '#D6FA23';
           state.forEach(function(row, y) {
             row.forEach(function(cell, x) {
               if (cell) {
@@ -118,25 +120,37 @@
         };
 
 
-        var initState = (function() {
-          var i = 20, rows = [];
+        var generate = function(x, y) {
+          var i = y, rows = [];
           while(i--) {
             rows.push((function() {
-              var j = 20, row = [];
+              var j = x, row = [];
               while(j--) {
-                row.push((Math.random() >= 0.2) ? 0 : 1);
+                row.push((Math.random() >= 0.5) ? 0 : 1);
               }
               return row;
             }()));
           }
           return rows;
-        }());
+        };
 
         autocell.setRule(rule);
         autocell.setMapping(mapping);
         autocell.setDisplay(display);
 
-        autocell.run(rule, initState, 20);  
+
+        var ctrl = document.getElementById('ctrl');
+        ctrl.addEventListener('click', function(e) {
+          if (this.textContent === 'Run') {
+            autocell.setSteps(Infinity);  
+            autocell.run(rule, golState || generate(160, 80));  
+            this.textContent = 'Stop';
+          } else {
+            autocell.setSteps(0);  
+            this.textContent = 'Run';
+          }
+        });
+
       }());
     </script>
   </body>

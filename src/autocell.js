@@ -42,16 +42,18 @@
         return state.map(mapping);
       }
 
+      var to;
       // `rule` is a map from state to state
       // `state` is the current state of the automaton
       // `steps` is the number of iterations to run
-      function run(rule, state, steps) {
+      function run(rule, state) {
         display(state);
         if (steps > 0) {
-          setTimeout(function() {
+          to = setTimeout(function() {
             run(rule, applyRule(state), steps - 1);
           }, delay);
         } else {
+          clearTimeout(to);
           console.log('done');
         }
       }
